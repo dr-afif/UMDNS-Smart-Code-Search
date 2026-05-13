@@ -153,17 +153,19 @@ input[type="search"]:focus {
 }
 
 button.btn-clear {
-  padding: 0 1.5rem;
-  height: 100%;
+  padding: 0 2rem;
+  min-height: 3.75rem;
   border-radius: 1.25rem;
   border: none;
   background-color: var(--border);
   color: var(--text-secondary);
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 button.btn-clear:hover {
@@ -352,7 +354,7 @@ footer {
     flex-direction: column;
   }
   button.btn-clear {
-    height: 3.5rem;
+    min-height: 3.75rem;
   }
   .result-card {
     flex-direction: column;
