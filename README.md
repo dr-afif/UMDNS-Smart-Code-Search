@@ -31,7 +31,7 @@ A simple static web app for searching UMDNS codes and terms.
    - Branch: **main**
    - Folder: **/root**
 5. Click **Save**.
-6. GitHub will provide a public URL after deployment.
+6. GitHub will provide a public URL after deployment. 
 
 ## Notes
 
