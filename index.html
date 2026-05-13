@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="UMDNS Smart Search - Find medical equipment codes instantly using semantic-style keyword matching." />
+  <meta name="description"
+    content="UMDNS Smart Search - Find medical equipment codes instantly using semantic-style keyword matching." />
   <meta name="theme-color" content="#2563eb" />
   <title>UMDNS Smart Search | Medical Equipment Classification</title>
-  
+
   <link rel="stylesheet" href="index.css" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="https://via.placeholder.com/192/2563eb/ffffff?text=U" />
@@ -15,17 +17,24 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
+
 <body>
   <main class="container">
     <section class="hero">
       <div class="hero-content">
         <h1>UMDNS Smart Search</h1>
-        <p>Advanced medical equipment classification. Type a description to find matching UMDNS codes with smart semantic ranking.</p>
-        
+        <p>Advanced medical equipment classification. Type a description to find matching UMDNS codes with smart
+          semantic ranking.</p>
+
         <div class="search-container">
           <div class="input-wrapper">
-            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input id="q" type="search" placeholder="Try: patient monitor, syringe pump..." autocomplete="off" autofocus />
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input id="q" type="search" placeholder="Try: patient monitor, syringe pump..." autocomplete="off"
+              autofocus />
           </div>
           <button id="clearBtn" class="btn-clear" type="button">Clear</button>
         </div>
@@ -40,14 +49,21 @@
     <div id="results" class="results-list">
       <!-- Search results will be injected here -->
       <div class="empty-state">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
         <h3>Ready to search</h3>
         <p>Start typing medical equipment terms above to see results.</p>
       </div>
     </div>
 
     <footer>
-      <p>&copy; 2026 UMDNS Smart Search. A static, premium web tool for procurement and classification.</p>
+      <div class="footer-divider"></div>
+      <p class="footer-copyright">&copy; 2026 <strong>UMDNS Smart Search</strong></p>
+      <p class="footer-author">Developed by <span>Dr. Muhammad Afif Abdullah</span> • ED HSAAS</p>
+      <p class="footer-tagline">A premium static tool for clinical procurement & equipment classification.</p>
     </footer>
   </main>
 
@@ -63,4 +79,5 @@
     }
   </script>
 </body>
+
 </html>

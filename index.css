@@ -298,11 +298,47 @@ button.btn-clear:hover {
 
 /* Footer */
 footer {
-  margin-top: 4rem;
+  margin-top: 5rem;
   text-align: center;
-  padding-bottom: 2rem;
-  font-size: 0.875rem;
+  padding-bottom: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer-divider {
+  width: 60px;
+  height: 3px;
+  background-color: var(--accent-soft);
+  margin: 0 auto 1.5rem;
+  border-radius: 2px;
+}
+
+.footer-copyright {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.footer-copyright strong {
+  color: var(--accent);
+}
+
+.footer-author {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.footer-author span {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.footer-tagline {
+  font-size: 0.8rem;
   color: var(--text-muted);
+  margin: 0;
 }
 
 @media (max-width: 640px) {
