@@ -1,52 +1,66 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UMDNS Smart Search</title>
-  <style>
-    :root { --bg:#f6f8fb; --card:#fff; --text:#162033; --muted:#637083; --border:#d8dee9; --accent:#2563eb; }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
-    .wrap { max-width:1100px; margin:0 auto; padding:28px 18px 40px; }
-    .hero { background:linear-gradient(135deg,#ffffff,#eef4ff); border:1px solid var(--border); border-radius:22px; padding:24px; box-shadow:0 10px 30px rgba(15,23,42,.06); }
-    h1 { margin:0 0 8px; font-size:32px; letter-spacing:-.03em; }
-    p { margin:0; color:var(--muted); line-height:1.5; }
-    .searchbox { margin-top:20px; display:flex; gap:10px; align-items:center; }
-    input { width:100%; font-size:18px; padding:15px 16px; border:1px solid var(--border); border-radius:15px; outline:none; background:#fff; }
-    input:focus { border-color:var(--accent); box-shadow:0 0 0 4px rgba(37,99,235,.12); }
-    button { border:0; background:var(--accent); color:white; padding:14px 16px; border-radius:14px; cursor:pointer; font-weight:700; white-space:nowrap; }
-    .meta { margin:14px 2px 0; font-size:14px; color:var(--muted); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-    .results { margin-top:18px; display:grid; gap:10px; }
-    .row { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px 15px; display:grid; grid-template-columns:100px 1fr 90px; gap:14px; align-items:center; box-shadow:0 4px 12px rgba(15,23,42,.035); }
-    .code { font-size:18px; font-weight:800; color:#0f3f9e; }
-    .term { font-weight:700; }
-    .reason { margin-top:3px; color:var(--muted); font-size:13px; }
-    .score { text-align:right; font-weight:800; color:#334155; }
-    .empty { background:#fff; border:1px dashed var(--border); border-radius:16px; padding:28px; text-align:center; color:var(--muted); }
-    .footer { margin-top:24px; font-size:13px; color:var(--muted); }
-    @media (max-width:700px){ .row{grid-template-columns:1fr;} .score{text-align:left;} .searchbox{display:block;} button{margin-top:10px;width:100%;} }
-  </style>
+  <meta name="description" content="UMDNS Smart Search - Find medical equipment codes instantly using semantic-style keyword matching." />
+  <meta name="theme-color" content="#2563eb" />
+  <title>UMDNS Smart Search | Medical Equipment Classification</title>
+  
+  <link rel="stylesheet" href="index.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/2563eb/ffffff?text=U" />
+
+  <!-- Preconnect to Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
-  <main class="wrap">
+  <main class="container">
     <section class="hero">
-      <h1>UMDNS Smart Search</h1>
-      <p>Type an equipment description. Results update instantly and are ranked using direct, broader keyword, fuzzy, and lightweight semantic-style matching.</p>
-      <div class="searchbox">
-        <input id="q" type="search" placeholder="Example: alarm bell, patient monitor, oxygen regulator, syringe pump" autocomplete="off" autofocus />
-        <button id="clearBtn" type="button">Clear</button>
-      </div>
-      <div class="meta">
-        <span id="status">Loading UMDNS database…</span>
-        <span>Manual selection recommended for procurement/classification.</span>
+      <div class="hero-content">
+        <h1>UMDNS Smart Search</h1>
+        <p>Advanced medical equipment classification. Type a description to find matching UMDNS codes with smart semantic ranking.</p>
+        
+        <div class="search-container">
+          <div class="input-wrapper">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input id="q" type="search" placeholder="Try: patient monitor, syringe pump..." autocomplete="off" autofocus />
+          </div>
+          <button id="clearBtn" class="btn-clear" type="button">Clear</button>
+        </div>
+
+        <div class="meta-info">
+          <span id="status">Warming up search engine...</span>
+          <span>Validated manual review recommended.</span>
+        </div>
       </div>
     </section>
 
-    <section id="results" class="results"></section>
-    <div class="footer">Static web app. Works on GitHub Pages after publishing the repository.</div>
+    <div id="results" class="results-list">
+      <!-- Search results will be injected here -->
+      <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <h3>Ready to search</h3>
+        <p>Start typing medical equipment terms above to see results.</p>
+      </div>
+    </div>
+
+    <footer>
+      <p>&copy; 2026 UMDNS Smart Search. A static, premium web tool for procurement and classification.</p>
+    </footer>
   </main>
 
-<script src="app.js"></script>
+  <div id="toast" class="toast">Code copied to clipboard!</div>
+
+  <script src="app.js"></script>
+  <script>
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>

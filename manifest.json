@@ -1,0 +1,22 @@
+{
+  "name": "UMDNS Smart Search",
+  "short_name": "UMDNS Search",
+  "description": "Smart medical equipment classification tool.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/2563eb/ffffff?text=U",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://via.placeholder.com/512/2563eb/ffffff?text=UMDNS",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
