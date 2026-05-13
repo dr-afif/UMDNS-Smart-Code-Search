@@ -3,6 +3,12 @@
  * Handles data loading, smart ranking, and UI interactions.
  */
 
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+
+// Configure transformers.js to use CDN and skip local model checks
+env.allowLocalModels = false;
+env.useBrowserCache = true;
+
 // --- Constants & Configuration ---
 
 const STOPWORDS = new Set("a an and or of for to with without the unit units device devices machine machines equipment set sets system systems medical hospital portable mobile digital manual electric electrical adult paediatric pediatric infant neonatal new room bay ed emergency".split(" "));
@@ -72,10 +78,11 @@ const CATEGORY_HINTS = [
   { q: ["cabinet", "rack", "storage", "fridge", "refrigerator", "freezer", "medicine", "instrument"], t: ["cabinet", "rack", "refrigerator", "medicine", "instrument", "storage"], boost: 10, name: "storage/general" }
 ];
 
-// --- State ---
-
 let DB = [];
 let currentIndex = -1;
+let extractor = null;
+let semanticData = null; // Float32Array containing all embeddings
+const DIM = 384; // all-MiniLM-L6-v2 dimensionality
 
 // --- Elements ---
 
@@ -208,6 +215,100 @@ function calculateScore(q, item) {
   return { score, reasons: [...new Set(reasons)].slice(0, 3).join('; ') };
 }
 
+// --- AI Semantic Helpers ---
+
+async function embed(text) {
+  if (!extractor) return null;
+  const output = await extractor(text, { pooling: 'mean', normalize: true });
+  return output.data;
+}
+
+function cosineSimilarity(v1, v2) {
+  let dot = 0;
+  for (let i = 0; i < v1.length; i++) dot += v1[i] * v2[i];
+  return dot;
+}
+
+async function getEmbeddingsFromDB() {
+  return new Promise((resolve) => {
+    const request = indexedDB.open('UMDNS_AI', 1);
+    request.onupgradeneeded = e => e.target.result.createObjectStore('cache');
+    request.onsuccess = e => {
+      const db = e.target.result;
+      const tx = db.transaction('cache', 'readonly');
+      const store = tx.objectStore('cache');
+      const get = store.get('embeddings');
+      get.onsuccess = () => resolve(get.result);
+      get.onerror = () => resolve(null);
+    };
+    request.onerror = () => resolve(null);
+  });
+}
+
+async function saveEmbeddingsToDB(data) {
+  const request = indexedDB.open('UMDNS_AI', 1);
+  request.onsuccess = e => {
+    const db = e.target.result;
+    const tx = db.transaction('cache', 'readwrite');
+    tx.objectStore('cache').put(data, 'embeddings');
+  };
+}
+
+async function initAI() {
+  const aiStatusEl = document.getElementById('ai-status');
+  const progressContainer = document.getElementById('ai-progress-container');
+  const progressBar = document.getElementById('ai-progress-bar');
+  const progressText = document.getElementById('ai-progress-text');
+
+  try {
+    aiStatusEl.classList.add('loading');
+    aiStatusEl.textContent = 'AI: Loading model...';
+    progressContainer.classList.remove('hidden');
+
+    extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
+      progress_callback: (p) => {
+        if (p.status === 'progress') {
+          progressBar.style.width = `${p.progress}%`;
+          progressText.textContent = `Downloading AI Model: ${Math.round(p.progress)}%`;
+        }
+      }
+    });
+
+    aiStatusEl.textContent = 'AI: Indexing...';
+    progressText.textContent = 'Optimizing semantic index...';
+
+    const cached = await getEmbeddingsFromDB();
+    if (cached && cached.length === DB.length * DIM) {
+      semanticData = cached;
+    } else {
+      semanticData = new Float32Array(DB.length * DIM);
+      const batchSize = 32;
+      for (let i = 0; i < DB.length; i += batchSize) {
+        const batch = DB.slice(i, i + batchSize).map(x => x.term);
+        const output = await extractor(batch, { pooling: 'mean', normalize: true });
+        semanticData.set(output.data, i * DIM);
+        const progress = Math.round(((i + batchSize) / DB.length) * 100);
+        progressBar.style.width = `${progress}%`;
+        progressText.textContent = `Analyzing medical terms: ${progress}%`;
+      }
+      await saveEmbeddingsToDB(semanticData);
+    }
+
+    aiStatusEl.classList.remove('loading');
+    aiStatusEl.classList.add('ready');
+    aiStatusEl.textContent = 'AI Semantic: Active';
+    setTimeout(() => progressContainer.classList.add('hidden'), 1000);
+    
+    // Trigger a search if there's already text in the box
+    if (qEl.value.trim()) search();
+    
+  } catch (err) {
+    console.error('AI Init failed:', err);
+    aiStatusEl.textContent = 'AI Semantic: Offline';
+    aiStatusEl.classList.remove('loading');
+  }
+}
+
 function renderResults(ranked, q) {
   if (!ranked.length) {
     resultsEl.innerHTML = `
@@ -231,7 +332,7 @@ function renderResults(ranked, q) {
   `).join('');
 }
 
-function search() {
+async function search() {
   const q = qEl.value.trim();
   currentIndex = -1;
 
@@ -242,21 +343,40 @@ function search() {
         <h3>Ready to search</h3>
         <p>Start typing medical equipment terms above to see results.</p>
       </div>`;
-    statusEl.textContent = `${DB.length.toLocaleString()} UMDNS terms loaded`;
     return;
   }
 
-  const qst = new Set(tokens(expandQuery(q)).map(stem));
-  let candidates = DB.filter(x => [...qst].some(t => x.search.includes(' ' + t + ' ') || x.norm.includes(t)));
-  if (candidates.length < 50) candidates = DB;
+  // AI Semantic Processing
+  let qEmbed = null;
+  if (extractor && semanticData && q.length > 2) {
+    qEmbed = await embed(q);
+  }
 
-  const ranked = candidates
-    .map(x => ({ ...x, ...calculateScore(q, x) }))
-    .filter(x => x.score > 8)
+  let ranked = DB.map((item, i) => {
+    const kRes = calculateScore(q, item);
+    let sScore = 0;
+
+    if (qEmbed) {
+      const v = semanticData.subarray(i * DIM, (i + 1) * DIM);
+      sScore = cosineSimilarity(qEmbed, v);
+    }
+
+    // Hybrid score merge: keyword score + semantic boost (max 65 pts)
+    const finalScore = kRes.score + (sScore * 65);
+    let reasons = kRes.reasons;
+
+    if (sScore > 0.78 && !reasons.includes('Keywords') && !reasons.includes('Direct')) {
+      reasons = (reasons ? reasons + '; ' : '') + `AI Semantic match (${Math.round(sScore * 100)}%)`;
+    }
+
+    return { ...item, score: finalScore, reasons, sScore };
+  });
+
+  ranked = ranked
+    .filter(x => x.score > 10)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 50);
+    .slice(0, 40);
 
-  statusEl.textContent = `${ranked.length} result${ranked.length === 1 ? '' : 's'} for "${q}"`;
   renderResults(ranked, q);
 }
 
@@ -273,10 +393,10 @@ function copyToClipboard(code, term) {
 
 // --- Initialization & Events ---
 
-let raf = 0;
+let searchTimeout = 0;
 qEl.addEventListener('input', () => {
-  cancelAnimationFrame(raf);
-  raf = requestAnimationFrame(search);
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(search, 300);
 });
 
 document.getElementById('clearBtn').onclick = () => {
@@ -341,7 +461,8 @@ fetch('umdns_codes.csv')
     }).filter(x => x.code && x.term);
     
     statusEl.textContent = `${DB.length.toLocaleString()} UMDNS terms loaded`;
-    search(); // Run initial search if query is pre-filled
+    search(); 
+    initAI(); // Start AI engine after database is loaded
   })
   .catch(err => {
     console.error(err);

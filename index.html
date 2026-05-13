@@ -40,8 +40,15 @@
         </div>
 
         <div class="meta-info">
-          <span id="status">Warming up search engine...</span>
+          <div class="status-group">
+            <span id="status">Warming up search engine...</span>
+            <span id="ai-status" class="ai-badge">AI Semantic: Initializing...</span>
+          </div>
           <span>Validated manual review recommended.</span>
+        </div>
+        <div id="ai-progress-container" class="progress-container hidden">
+          <div id="ai-progress-bar" class="progress-bar"></div>
+          <span id="ai-progress-text">Loading AI Model...</span>
         </div>
       </div>
     </section>
@@ -69,7 +76,7 @@
 
   <div id="toast" class="toast">Code copied to clipboard!</div>
 
-  <script src="app.js"></script>
+  <script src="app.js" type="module"></script>
   <script>
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
